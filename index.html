@@ -1,0 +1,429 @@
+  	<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uma surpresa ❤️</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:black;
+color:white;
+text-align:center;
+overflow:hidden;
+height:100vh;
+}
+
+.star{
+position:absolute;
+width:2px;
+height:2px;
+background:white;
+border-radius:50%;
+animation:twinkle 2s infinite alternate;
+}
+
+@keyframes twinkle{
+from{opacity:0.2}
+to{opacity:1}
+}
+
+#personagem{
+position:fixed;
+font-size:42px;
+pointer-events:none;
+z-index:1000;
+}
+
+#game{
+position:absolute;
+width:100%;
+height:100%;
+}
+
+.heart{
+position:absolute;
+font-size:34px;
+cursor:pointer;
+}
+
+#score{
+position:absolute;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+font-size:24px;
+}
+
+.container{
+margin-top:100px;
+padding:20px;
+}
+
+button{
+padding:15px 35px;
+font-size:22px;
+margin:10px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+transition:0.3s;
+}
+
+#sim{
+background:#ff2e63;
+color:white;
+}
+
+#nao{
+background:white;
+color:black;
+position:absolute;
+}
+
+.box{
+width:180px;
+height:130px;
+background:#8b0000;
+margin:40px auto;
+border-radius:10px;
+position:relative;
+cursor:pointer;
+}
+
+.lid{
+width:180px;
+height:70px;
+background:#a40000;
+border-radius:10px 10px 0 0;
+position:absolute;
+top:0;
+transform-origin:top;
+transition:1s;
+}
+
+.box.open .lid{
+transform:rotateX(-120deg);
+}
+
+.ring{
+font-size:60px;
+margin-top:50px;
+opacity:0;
+transition:1s;
+animation:brilho 1.2s infinite alternate;
+}
+
+@keyframes brilho{
+from{
+filter:drop-shadow(0 0 5px gold);
+transform:scale(1);
+}
+to{
+filter:drop-shadow(0 0 25px gold);
+transform:scale(1.2);
+}
+}
+
+.box.open .ring{
+opacity:1;
+}
+
+#fogos{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:none;
+}
+</style>
+
+</head>
+
+<body>
+
+<canvas id="fogos"></canvas>
+
+<div id="personagem">🙂</div>
+
+<div id="game">
+<div id="score">Pegue 5 corações ❤️</div>
+</div>
+
+<script>
+
+/* estrelas */
+
+for(let i=0;i<80;i++){
+let star=document.createElement("div")
+star.className="star"
+star.style.left=Math.random()*100+"vw"
+star.style.top=Math.random()*100+"vh"
+document.body.appendChild(star)
+}
+
+/* personagem segue cursor */
+
+let personagem=document.getElementById("personagem")
+
+document.addEventListener("mousemove",(e)=>{
+personagem.style.left=(e.clientX+15)+"px"
+personagem.style.top=(e.clientY+15)+"px"
+})
+
+document.addEventListener("touchmove",(e)=>{
+let t=e.touches[0]
+personagem.style.left=(t.clientX+15)+"px"
+personagem.style.top=(t.clientY+15)+"px"
+})
+
+/* mini jogo */
+
+let pontos=0
+
+function spawnHeart(){
+
+let heart=document.createElement("div")
+heart.className="heart"
+heart.innerHTML="❤️"
+
+heart.style.left=Math.random()*90+"vw"
+heart.style.top=Math.random()*80+"vh"
+
+function clickHeart(){
+
+pontos++
+heart.remove()
+
+document.getElementById("score").innerText="Corações: "+pontos+"/5"
+
+if(pontos>=5){
+iniciarPerguntas()
+}
+
+}
+
+/* evitar double click */
+
+if('ontouchstart' in window){
+heart.ontouchstart = clickHeart
+}else{
+heart.onclick = clickHeart
+}
+
+document.getElementById("game").appendChild(heart)
+
+setTimeout(()=>heart.remove(),3500)
+
+}
+
+let gameLoop=setInterval(spawnHeart,900)
+
+/* perguntas */
+
+function iniciarPerguntas(){
+
+clearInterval(gameLoop)
+document.getElementById("game").remove()
+
+let container=document.createElement("div")
+container.className="container"
+
+container.innerHTML=`
+<h1 id="pergunta"></h1>
+<button id="sim">Sim ❤️</button>
+<button id="nao">Não 😅</button>
+`
+
+document.body.appendChild(container)
+
+let perguntas=[
+"Oi amor ❤️",
+"Você sabia que mudou minha vida?",
+"Sabia que meu lugar favorito é ao seu lado?",
+"Promete continuar rindo comigo?",
+"Promete continuar vivendo aventuras comigo?",
+"Promete continuar me aguentando?",
+"Promete continuar rindo das minhas piadas ruins?",
+"Promete continuar segurando minha mão?",
+"Promete continuar sendo minha pessoa favorita?",
+"Promete continuar sonhando comigo?",
+"Promete continuar fazendo minha vida melhor?",
+"Então chegou a pergunta mais importante..."
+]
+
+let indice=0
+let tamanhoSim=1
+let tamanhoNao=1
+
+let pergunta=document.getElementById("pergunta")
+let sim=document.getElementById("sim")
+let nao=document.getElementById("nao")
+
+pergunta.innerText=perguntas[indice]
+
+function proximo(){
+
+indice++
+
+tamanhoSim=1
+tamanhoNao=1
+
+sim.style.transform="scale(1)"
+nao.style.transform="scale(1)"
+
+if(indice<perguntas.length){
+pergunta.innerText=perguntas[indice]
+}else{
+mostrarPedido()
+}
+
+}
+
+function naoClick(){
+
+tamanhoSim+=0.2
+tamanhoNao-=0.1
+
+sim.style.transform="scale("+tamanhoSim+")"
+nao.style.transform="scale("+tamanhoNao+")"
+
+}
+
+/* corrigido double click */
+
+if('ontouchstart' in window){
+
+sim.ontouchstart = proximo
+nao.ontouchstart = naoClick
+
+}else{
+
+sim.onclick = proximo
+nao.onclick = naoClick
+
+}
+
+/* botão fugir */
+
+nao.addEventListener("mouseover",fugir)
+nao.addEventListener("touchstart",fugir)
+
+function fugir(){
+
+if(Math.random()<0.5){
+
+let x=Math.random()*(window.innerWidth-120)
+let y=Math.random()*(window.innerHeight-60)
+
+nao.style.left=x+"px"
+nao.style.top=y+"px"
+
+}
+
+}
+
+}
+
+/* pedido */
+
+function mostrarPedido(){
+
+let container=document.querySelector(".container")
+
+container.innerHTML=`
+<h1>Clique na caixa ❤️</h1>
+<div class="box" onclick="abrirCaixa(this)">
+<div class="lid"></div>
+<div class="ring">💍</div>
+</div>
+<h2 id="pedido" style="opacity:0">Quer casar comigo? 💖</h2>
+`
+
+}
+
+/* abrir caixa */
+
+function abrirCaixa(el){
+
+el.classList.add("open")
+
+personagem.innerText="🤵💍"
+
+document.getElementById("pedido").style.opacity=1
+
+iniciarFogos()
+
+if(navigator.vibrate){
+navigator.vibrate([120,80,120,600,120,80,120])
+}
+
+}
+
+/* fogos */
+
+let canvas=document.getElementById("fogos")
+let ctx=canvas.getContext("2d")
+
+canvas.width=window.innerWidth
+canvas.height=window.innerHeight
+
+let particulas=[]
+
+function criarFogo(){
+
+let x=Math.random()*canvas.width
+let y=Math.random()*canvas.height/2
+
+for(let i=0;i<70;i++){
+
+particulas.push({
+x:x,
+y:y,
+vx:(Math.random()-0.5)*6,
+vy:(Math.random()-0.5)*6,
+life:100
+})
+
+}
+
+}
+
+function animarFogos(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+particulas.forEach((p,i)=>{
+
+p.x+=p.vx
+p.y+=p.vy
+p.life--
+
+ctx.beginPath()
+ctx.arc(p.x,p.y,2,0,Math.PI*2)
+ctx.fillStyle="hsl("+Math.random()*360+",100%,60%)"
+ctx.fill()
+
+if(p.life<=0) particulas.splice(i,1)
+
+})
+
+requestAnimationFrame(animarFogos)
+
+}
+
+function iniciarFogos(){
+
+setInterval(criarFogo,700)
+animarFogos()
+
+}
+
+</script>
+
+</body>
+</html>
